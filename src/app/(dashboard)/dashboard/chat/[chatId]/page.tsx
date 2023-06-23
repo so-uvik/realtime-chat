@@ -44,7 +44,11 @@ const page = async ({ params }: pageProps) => {
   if (user.id !== userId1 && user.id !== userId2) notFound();
 
   const chatPartnerId = user.id === userId1 ? userId2 : userId1; //Determining which chatId is yours and your partners
-  const chatPartner = (await db.get(`user:${chatPartnerId}`)) as User;
+  const chatPartnerRaw = (await fetchRedis(
+    "get",
+    `user:${chatPartnerId}`
+  )) as string;
+  const chatPartner = JSON.parse(chatPartnerRaw) as User;
   const initialMessages = await getChatMessages(chatId);
 
   return (
@@ -77,6 +81,7 @@ const page = async ({ params }: pageProps) => {
         initialMessages={initialMessages}
         sessionId={session.user.id}
         chatPartner={chatPartner}
+        chatId={chatId}
         sessionImg={session.user.image}
       />
       <ChatInput chatPartner={chatPartner} chatId={chatId} />
